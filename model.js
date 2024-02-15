@@ -1,5 +1,3 @@
-import {count_at_or_below, count_below, KeyedSum} from "./utils";
-
 let filler_value = 2;
 
 /**
@@ -9,49 +7,64 @@ let filler_value = 2;
  * @param stepIndex {number}
  * @returns {number}
  */
+
 export function probabilityOfSelection(query, budget, stepIndex ){
 
-    // Over budget, cannot be selected.
+    // Over budget, target cannot be selected.
     if(query.target>budget) return 0.0;
 
     // Ensure we have enough space for a filler.
     // This is only needed if target is also a filler.
-    if(budget<filler_value) budget = filler_value;
+    if(budget < filler_value) budget = filler_value;
 
-    // Count
-    let count = count_at_or_below(query.availableStyleCosts, budget);
-
-
-    // On the last pull, target is only selected if it's the largest below budget.
-    // The list of sorted cost might be not expressive enough to compute that.
-
+    // Special case for the last step
     if(stepIndex === query.numberOfSteps){
-        return query.availableStyleCosts[count] === query.target ? 1.0:0.0;
+
+        // The last step will return one item with  the highest value, still below budget.
+        let largestIndex = query.groupedStyleCost.largestIndexAtOrUnder(budget);
+        let [largestValue, largestCount, largestRank] = query.groupedStyleCost.item(largestIndex);
+
+        // Not selected at last step.
+        if(query.target !== largestValue) return 0.0;
+
+        // Split 1/count amongst the highest values;
+        return 1/largestCount;
+
     }
 
-    // Probability = 1/count is only valid if target is in the list. If not we should return 0;
+    // Otherwise we count number of valid entries and return 1/count;
 
+    let count = query.groupedStyleCost.totalCountAtOrUnder(budget);
     if(count===0) return 0.0; // should not happen because of filler
     return 1.0 / count;
 }
 
-export function childrenBudgets(costList, parentBudget, parentProbability){
+/**
+ * @generator
+ * @param query {ProbabilitySpoQuery}
+ * @param parentBudget {number}
+ * @param parentProbability {number}
+ * @yields [{[number,number]}]
+ * @return {Iterable<[number,number]>}
+ */
 
-    let budgetSums = new KeyedSum();
-    let total = 0;
+export function *childrenBudgets(query, parentBudget, parentProbability){
 
-    for (let cost of costList){
-        // This assumes costList is sorted in ascending order.
-        if(cost > parentBudget) break;
-        let childBudget = parentBudget - cost
-        budgetSums.add(childBudget, 1) // add 1 is a count
-        total++;
+    let groupedCost = query.groupedStyleCost;
+    let totalCountBelowBudget = groupedCost.totalCountAtOrUnder(parentBudget);
+    let countToProbability = parentProbability / totalCountBelowBudget;
+
+    for(let item in groupedCost.sortedEntries()){
+
+        let [cost, count, rank] = item;
+
+        if(cost > parentBudget) // rely on ascending order.
+            break;
+
+        let childBudget = parentBudget - cost;
+        let probability = count * countToProbability; // count / totalCount * parentProbability
+
+        yield [childBudget, probability]
     }
-
-    // from count to probability
-    let factor = parentProbability/total;
-    budgetSums.transform(count =>  factor * count );
-
-    return budgetSums;
 
 }
