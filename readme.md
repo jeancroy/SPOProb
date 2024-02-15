@@ -8,9 +8,7 @@ P(“Some event” \| “Given something we know/assume is true” )
 
 If we don’t know the second part, we can decompose: Assume it’s true. Then correct for the incertitude. And integrate that over all possible values.
 
-$$
-P(event) = \sum_{all\ possibilities\ of\ X}^{}{P(\ event|\ assume\ X\ )P(X)}
-$$
+$$P(event) = \sum_{all\ possibilities\ of\ X}^{}{P(\ event|\ assume\ X\ )P(X)}$$
 <https://en.wikipedia.org/wiki/Law_of_total_probability>
 
 **At least One**
@@ -76,10 +74,9 @@ The budget at the start of the step is perfectly known. So, probability of selec
 
 **Medium Case, step 2**
 
-P( “select target” \| budget after step1) =
-$$
-  \sum_{bx}^{}{P(\ ``select\ target"\ |budget = bx)P(bx)}
-$$
+P( “select target” \| budget after step1) = 
+
+$$\sum_{bx}^{}{P(select\ target\ |budget = bx)P(bx)}$$
 
 - Loop all the valid sleep style at step 1.
 
