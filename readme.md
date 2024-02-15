@@ -1,6 +1,9 @@
 **Conditional probability**
 
-P(“Some event” \| “Given something we know/assume is true” )
+P(“Some event” \| “Given something we know is true” )
+
+For example:
+P("we select this sleep style" | "this is the budget before the pull")
 
 <https://en.wikipedia.org/wiki/Conditional_probability>
 
@@ -21,7 +24,7 @@ P(“exactly zero”)
 
 = P(“exactly 0 at step 1” ) \* P(“exactly 0 at step 2” ) \* … P(0 at step k)
 
-(And relation is multiplications of P. Or relation is additions of P)
+("X And Y": we multiply P(X)*P(Y). "X Or Y" we add P(X) + P(Y) )
 
 **The idea:**
 
@@ -63,10 +66,9 @@ Most SPO cost are repeated. We can pre-process that fact once at the start and d
 **Rank Query**
 
 The base case (count all element below budget) can be repeated millions of times. Fortunately, it’s a standard operation and there’s data structures for it.  
-**Rank x in S: the number of elements in S that are no greater than x.  
-**
+**Rank(x) in S: the number of elements in S that are no greater than x.**
 
-There’s specialized structure for that but for now we’ll keep it simple with binary search over our (cost,count) items. Actually we’ll store (cost,count,rank) where rank is cumulative sum of count after being sorted.
+There’s specialized structure for that, but for now we’ll keep it simple with binary search over our (cost,count) items. Actually we’ll store (cost,count,rank) where rank is cumulative sum of count after being sorted.
 
 **Easy case, step 1**
 
