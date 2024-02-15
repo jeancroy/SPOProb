@@ -22,9 +22,9 @@ P(“exactly zero”)
 
 = P(“exactly 0 at step 1” AND “exactly 0 at step 2” AND … 0 at step k)
 
-= P(“exactly 0 at step 1” ) \* P(“exactly 0 at step 2” ) \* … P(0 at step k)
+= P(“exactly 0 at step 1” ) \* P(“exactly 0 at step 2”|Step1 ) \* … P(0 at step k| Step1..K-1)
 
-("X And Y": we multiply P(X)*P(Y). "X Or Y" we add P(X) + P(Y) )
+P("X And Y") = P(X|Y)P(Y) = (when X,Y independant) P(X)P(Y).
 
 **The idea:**
 
