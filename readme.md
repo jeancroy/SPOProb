@@ -1,6 +1,9 @@
 **Conditional probability**
 
-P(“Some event” \| “Given something we know/assume is true” )
+P(“Some event” \| “Given something we know is true” )
+
+For example:
+P("we select this sleep style" | "this is the budget before the pull")
 
 <https://en.wikipedia.org/wiki/Conditional_probability>
 
@@ -8,9 +11,7 @@ P(“Some event” \| “Given something we know/assume is true” )
 
 If we don’t know the second part, we can decompose: Assume it’s true. Then correct for the incertitude. And integrate that over all possible values.
 
-$$
-P(event) = \sum_{all\ possibilities\ of\ X}^{}{P(\ event|\ assume\ X\ )P(X)}
-$$
+$$P(event) = \sum_{all\ possibilities\ of\ X}^{}{P(\ event|\ assume\ X\ )P(X)}$$
 <https://en.wikipedia.org/wiki/Law_of_total_probability>
 
 **At least One**
@@ -21,9 +22,9 @@ P(“exactly zero”)
 
 = P(“exactly 0 at step 1” AND “exactly 0 at step 2” AND … 0 at step k)
 
-= P(“exactly 0 at step 1” ) \* P(“exactly 0 at step 2” ) \* … P(0 at step k)
+= P(“exactly 0 at step 1” ) \* P(“exactly 0 at step 2”|Step1 ) \* … P(0 at step k| Step1..K-1)
 
-(And relation is multiplications of P. Or relation is additions of P)
+P("X And Y") = P(X|Y)P(Y) = (when X,Y independant) P(X)P(Y).
 
 **The idea:**
 
@@ -65,10 +66,9 @@ Most SPO cost are repeated. We can pre-process that fact once at the start and d
 **Rank Query**
 
 The base case (count all element below budget) can be repeated millions of times. Fortunately, it’s a standard operation and there’s data structures for it.  
-**Rank x in S: the number of elements in S that are no greater than x.  
-**
+**Rank(x) in S: the number of elements in S that are no greater than x.**
 
-There’s specialized structure for that but for now we’ll keep it simple with binary search over our (cost,count) items. Actually we’ll store (cost,count,rank) where rank is cumulative sum of count after being sorted.
+There’s specialized structure for that, but for now we’ll keep it simple with binary search over our (cost,count) items. Actually we’ll store (cost,count,rank) where rank is cumulative sum of count after being sorted.
 
 **Easy case, step 1**
 
@@ -76,10 +76,9 @@ The budget at the start of the step is perfectly known. So, probability of selec
 
 **Medium Case, step 2**
 
-P( “select target” \| budget after step1) =
-$$
-  \sum_{bx}^{}{P(\ ``select\ target"\ |budget = bx)P(bx)}
-$$
+P( “select target” \| budget after step1) = 
+
+$$\sum_{bx}^{}{P(select\ target\ |budget = bx)P(bx)}$$
 
 - Loop all the valid sleep style at step 1.
 
