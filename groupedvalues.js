@@ -57,7 +57,10 @@ export class GroupedValues{
     }
 
     totalCountAtOrUnder(limit){
-        return this.ranks[ indexAtOrBelow(this.uniqueValues, limit) ];
+        let idx = indexAtOrBelow(this.uniqueValues, limit);
+        if(idx===-1) return 0;
+
+        return this.ranks[idx];
     }
 
     item(index){
@@ -67,9 +70,12 @@ export class GroupedValues{
 
 }
 
-// Find the count of items for which arr[i] <= target
-function indexAtOrBelow(arr, key)
+// Find the last index which arr[i] <= target
+function indexAtOrBelow(arr, target)
 {
+    if(target < arr[0]) return -1;
+    if(target >= arr[arr.length-1]) return arr.length-1;
+
     let n = arr.length;
     let left = 0;
     let right = n-1;
@@ -77,24 +83,24 @@ function indexAtOrBelow(arr, key)
     while (left < right) {
         let mid = (right + left) >> 1; // (int)floor(a+b)/2
 
-        // if key is present in array
-        if (arr[mid] === key) {
+        // if target is present in array
+        if (arr[mid] === target) {
 
             // Place cursor after duplicates.
-            while ((mid + 1) < n && arr[mid + 1] === key)
+            while ((mid + 1) < n && arr[mid + 1] === target)
                 mid++;
 
             return mid;
         }
 
-        else if (arr[mid] > key)
+        else if (arr[mid] > target)
             right = mid;
         else
             left = mid + 1;
     }
 
     // The range collapse on the first number larger-than, we seek smaller than or equal.
-    while (left > -1 && arr[left] > key)
+    while (left > -1 && arr[left] > target)
         left--;
 
     return left;

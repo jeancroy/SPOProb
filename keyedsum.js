@@ -1,12 +1,31 @@
 
+export class KeyValuePair {
+    constructor(key,value) {
+        this.key = key;
+        this.value = value;
+    }
+}
+
+
 /** @template TKey */
 export class KeyedSum {
 
-    constructor() {
+    /**
+     * @param hashFunc {CallableFunction<TKey,number|string>}
+     */
+    constructor(hashFunc) {
         /**
-         * @type {Map<TKey,number>}
+         * @type {Map<number|string, KeyValuePair<TKey,number>>}
          */
         this._map = new Map(); // Is this more performant than using a {} as dict ?
+        this._hashFunc = hashFunc || (x=>x);
+    }
+
+    /**
+     * @param hashFunc {CallableFunction<TKey,number|string>}
+     */
+    configureHash(hashFunc){
+        this._hashFunc = hashFunc;
     }
 
     /**
@@ -14,7 +33,16 @@ export class KeyedSum {
      * @param {number} qty
      */
     add(key, qty){
-        this._map.set(key, ( this._map.get(key)??0 ) + qty )
+
+        let mapkey = this._hashFunc(key);
+
+        if(this._map.has(mapkey)){
+            this._map.get(mapkey).value += qty;
+        }
+        else{
+            this._map.set(mapkey, new KeyValuePair(key,qty))
+        }
+
     }
 
     /**
@@ -41,8 +69,12 @@ export class KeyedSum {
     }
 
 
+    /**
+     *
+     * @return {IterableIterator<KeyValuePair<TKey, number>>}
+     */
     entries(){
-        return this._map.entries();
+        return this._map.values();
     }
 
 }

@@ -1,14 +1,22 @@
+import {SelectionState} from "./prob";
+
 let filler_value = 2;
+
 
 /**
  *
  * @param query {ProbabilitySpoQuery}
- * @param budget {number}
+ * @param state {SelectionState}
  * @param stepIndex {number}
- * @returns {number}
+ * @return {number}
  */
 
-export function probabilityOfSelection(query, budget, stepIndex ){
+
+// Technically stepIndex is part of the state, but it's the same for everyone as we work step by step.
+
+export function probabilityOfSelection(query, state , stepIndex){
+
+    let budget = state.budget;
 
     // Over budget, target cannot be selected.
     if(query.target>budget) return 0.0;
@@ -24,11 +32,15 @@ export function probabilityOfSelection(query, budget, stepIndex ){
         let largestIndex = query.groupedStyleCost.largestIndexAtOrUnder(budget);
         let [largestValue, largestCount, largestRank] = query.groupedStyleCost.item(largestIndex);
 
+        if(state.canDrawOnSnorlax){
+            // compare largest value non snorlax to largest value with snorlax.
+        }
+
         // Not selected at last step.
         if(query.target !== largestValue) return 0.0;
 
         // Split 1/count amongst the highest values;
-        return 1/largestCount;
+        return 1.0/largestCount;
 
     }
 
@@ -42,29 +54,57 @@ export function probabilityOfSelection(query, budget, stepIndex ){
 /**
  * @generator
  * @param query {ProbabilitySpoQuery}
- * @param parentBudget {number}
+ * @param parentSate {SelectionState}
  * @param parentProbability {number}
- * @yields [{[number,number]}]
- * @return {Iterable<[number,number]>}
+ * @yields [{[SelectionState,number]}]
+ * @return {Iterable<[SelectionState,number]>}
  */
 
-export function *childrenBudgets(query, parentBudget, parentProbability){
+export function *childrenBudgets(query, parentSate, parentProbability){
+
+    // Total available draw = normal draw + snorlax draw (when available)
 
     let groupedCost = query.groupedStyleCost;
-    let totalCountBelowBudget = groupedCost.totalCountAtOrUnder(parentBudget);
+    let totalCountBelowBudget = groupedCost.totalCountAtOrUnder(parentSate.budget);
+
+    if(parentSate.canDrawOnSnorlax)
+        totalCountBelowBudget = query.snorlaxStyleCosts.totalCountAtOrUnder(parentSate.budget);
+
+
     let countToProbability = parentProbability / totalCountBelowBudget;
 
     for(let item in groupedCost.sortedEntries()){
 
         let [cost, count, rank] = item;
 
-        if(cost > parentBudget) // rely on ascending order.
+        if(cost > parentSate.budget) // rely on ascending order.
             break;
 
-        let childBudget = parentBudget - cost;
-        let probability = count * countToProbability; // count / totalCount * parentProbability
+        // We didn't draw a snorlax now... so just copy parent
+        let childBudget = Math.max(parentSate.budget-cost, filler_value);
+        let childState = new SelectionState(childBudget,parentSate.canDrawOnSnorlax)
+        let probability = count * countToProbability;
 
-        yield [childBudget, probability]
+        yield [childState, probability]
+    }
+
+    if(parentSate.canDrawOnSnorlax){
+
+        for(let item in groupedCost.sortedEntries()){
+
+            let [cost, count, rank] = item;
+
+            if(cost > parentSate.budget) // rely on ascending order.
+                break;
+
+            // Set canDrawOnSnorlax to false because we can draw only one.
+            let childBudget = Math.max(parentSate.budget-cost, filler_value);
+            let childState = new SelectionState(childBudget,false)
+            let probability = count * countToProbability;
+
+            yield [childState, probability]
+        }
+
     }
 
 }
